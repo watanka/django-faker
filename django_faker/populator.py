@@ -1,8 +1,8 @@
 import random
 from django_faker.guessers import Name
 from django.db.models.fields import *
-from django.db.models import ForeignKey, ManyToManyField, OneToOneField, ImageField
-
+from django.db.models import ForeignKey, ManyToManyField, OneToOneField, ImageField, DurationField
+from datetime import timedelta
 
 class FieldTypeGuesser(object):
 
@@ -24,13 +24,15 @@ class FieldTypeGuesser(object):
         if isinstance(field, FloatField): return lambda x: generator.pyfloat()
         if isinstance(field, CharField):
             if field.choices:
-                return lambda x: generator.randomElement(field.choices)[0]
+                return lambda x: generator.random_element(field.choices)[0]
             return lambda x: generator.text(field.max_length) if field.max_length >= 5 else generator.word()
         if isinstance(field, TextField): return lambda x: generator.text()
 
         if isinstance(field, DateTimeField): return lambda x: generator.dateTime()
         if isinstance(field, DateField): return lambda x: generator.date()
         if isinstance(field, TimeField): return lambda x: generator.time()
+        if isinstance(field, DurationField): return lambda x: timedelta(seconds=generator.random_int(60, 86400))
+        
 
         if isinstance(field, URLField): return lambda x: generator.uri()
         if isinstance(field, SlugField): return lambda x: generator.slug()

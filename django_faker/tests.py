@@ -2,12 +2,15 @@ from faker import Faker
 from django_faker.populator import Populator
 from django_faker import Faker as DjangoFaker
 
+import django
 from django.db import models
-from django.utils import unittest
+import unittest
+from unittest import skipIf
 from django.template import Context, TemplateSyntaxError
 from django.template import Template
 
 fake = Faker()
+
 
 class Game(models.Model):
 
@@ -26,8 +29,13 @@ class Player(models.Model):
     nickname= models.CharField(max_length=100)
     score= models.BigIntegerField()
     last_login_at= models.DateTimeField()
+    game= models.ForeignKey(Game, on_delete=models.CASCADE)
 
-    game= models.ForeignKey(Game)
+
+class GamePlayTime(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    duration = models.DurationField()
 
 
 class Action(models.Model):
@@ -46,9 +54,26 @@ class Action(models.Model):
     name= models.CharField(max_length=4, choices=ACTIONS)
     executed_at= models.DateTimeField()
 
-    actor= models.ForeignKey(Player,related_name='actions', null=True)
-    target= models.ForeignKey(Player, related_name='enemy_actions+', null=True)
+    actor= models.ForeignKey(Player, on_delete=models.CASCADE, related_name='actions', null=True)
+    target= models.ForeignKey(Player, on_delete=models.CASCADE, related_name='enemy_actions+', null=True)
 
+class TestDurationField(unittest.TestCase):
+    def testGamePlayTime(self):
+        generator = fake
+
+        populator = Populator(generator)
+        populator.addEntity(Game, 10)
+        populator.addEntity(Player, 10, {
+            'game': lambda x: Game.objects.order_by('?').first()
+        })
+        populator.addEntity(GamePlayTime, 10, {
+            'game': lambda x: Game.objects.order_by('?').first(),
+            'player': lambda x: Player.objects.order_by('?').first()
+        })
+
+        insertedPks = populator.execute()
+
+        self.assertEqual(len(insertedPks[GamePlayTime]), 10)
 
 class PopulatorTestCase(unittest.TestCase):
 
@@ -83,7 +108,7 @@ class PopulatorTestCase(unittest.TestCase):
 
         populator.addEntity(Game,5)
         populator.addEntity(Player, 10, {
-            'score': lambda x: fake.randomInt(0,1000),
+            'score': lambda x: fake.random_int(0,1000),
             'nickname': lambda x: fake.email()
         })
         populator.addEntity(Action,30)
@@ -96,6 +121,7 @@ class PopulatorTestCase(unittest.TestCase):
         self.assertTrue( any([0 <= p.score <= 1000 and '@' in p.nickname for p in Player.objects.all() ]) )
 
 
+@skipIf(django.VERSION >= (2, 0), "Template tags not supported in Django 2.0+")
 class TemplateTagsTestCase(unittest.TestCase):
 
     @staticmethod
@@ -151,7 +177,7 @@ class TemplateTagsTestCase(unittest.TestCase):
     def testFullXmlContact(self):
         self.assertTrue(self.render("""<?xml version="1.0" encoding="UTF-8"?>
 <contacts>
-    {% fake 'randomInt' 10 20 as times %}
+    {% fake 'random_int' 10 20 as times %}
     {% for i in 10|get_range %}
     <contact firstName="{% fake 'firstName' %}" lastName="{% fake 'lastName' %}" email="{% fake 'email' %}"/>
         <phone number="{% fake 'phoneNumber' %}"/>
