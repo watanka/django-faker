@@ -2,6 +2,7 @@
 import sys
 
 from django.conf import settings
+import django
 
 def configure():
 
@@ -22,6 +23,7 @@ def configure():
         SITE_ID=1,
         SECRET_KEY=fake.sha1(),
     )
+    django.setup()
 
 if not settings.configured: configure()
 

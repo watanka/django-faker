@@ -62,7 +62,7 @@ class ModelPopulator(object):
         #            yield field.name, getattr(self, field.name)
             fieldName = field.name
             if isinstance(field, (ForeignKey,ManyToManyField,OneToOneField)):
-                relatedModel = field.rel.to
+                relatedModel = field.remote_field.model
 
                 def build_relation(inserted):
                     if relatedModel in inserted and inserted[relatedModel]:
