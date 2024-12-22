@@ -15,7 +15,7 @@ class Name(object):
         name = name.lower()
         generator = self.generator
         if re.findall(r'^is[_A-Z]', name): return lambda x:generator.boolean()
-        if re.findall(r'(_a|A)t$', name): return lambda x:generator.dateTime()
+        if re.findall(r'(_a|A)t$', name): return lambda x:generator.date_time()
 
         if name in ('first_name','firstname'): return lambda x: generator.firstName()
         if name in ('last_name','lastname'): return lambda x: generator.lastName()

@@ -18,9 +18,9 @@ class FieldTypeGuesser(object):
         if isinstance(field, BooleanField): return lambda x: generator.boolean()
         if isinstance(field, NullBooleanField): return lambda x: generator.nullBoolean()
         if isinstance(field, DecimalField): return lambda x: generator.pydecimal(rightDigits=field.decimal_places)
-        if isinstance(field, SmallIntegerField): return lambda x: generator.randomInt(0,65535)
-        if isinstance(field, IntegerField): return lambda x: generator.randomInt(0,4294967295)
-        if isinstance(field, BigIntegerField): return lambda x: generator.randomInt(0,18446744073709551615)
+        if isinstance(field, SmallIntegerField): return lambda x: generator.random_int(0,65535)
+        if isinstance(field, IntegerField): return lambda x: generator.random_int(0,4294967295)
+        if isinstance(field, BigIntegerField): return lambda x: generator.random_int(0,18446744073709551615)
         if isinstance(field, FloatField): return lambda x: generator.pyfloat()
         if isinstance(field, CharField):
             if field.choices:
